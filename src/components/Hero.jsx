@@ -1,71 +1,62 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Leaf, MapPin } from 'lucide-react';
+import Spline from "@splinetool/react-spline";
+import { motion } from "framer-motion";
 
-export default function Hero({ onStart }) {
+export default function Hero() {
   return (
-    <section className="relative isolate">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#36454F] via-[#36454F] to-[#2b3740]" aria-hidden="true" />
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-4xl sm:text-6xl font-serif tracking-tight text-[#F5DEB3]"
-        >
-          Find Thoughtful Gifts That Match Your Values
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6 }}
-          className="mt-4 max-w-2xl text-lg text-white/80"
-        >
-          AI-powered recommendations from local artisans with sustainability at heart.
-        </motion.p>
+    <section className="relative">
+      {/* Spline 3D scene */}
+      <div className="relative h-[520px] w-full">
+        <Spline
+          scene="https://prod.spline.design/UngO8SNLfLcyPG7O/scene.splinecode"
+          style={{ width: "100%", height: "100%" }}
+        />
+        {/* Gradient glow overlay (doesn't block interactions) */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-white"></div>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mt-8 flex flex-wrap items-center gap-3"
-        >
-          <button
-            onClick={onStart}
-            className="inline-flex items-center gap-2 rounded-md bg-[#F5DEB3] text-[#36454F] px-6 py-3 text-base font-semibold shadow hover:shadow-md active:scale-95 transition"
-            aria-label="Start the gift quiz"
-          >
-            <Sparkles size={18} /> Start Gift Quiz
-          </button>
-          <a
-            href="/#/recommendations"
-            className="inline-flex items-center gap-2 rounded-md border border-white/20 text-white px-6 py-3 text-base font-medium hover:bg-white/10 transition"
-          >
-            Browse Ideas
-          </a>
-        </motion.div>
-
-        <dl className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Feature icon={<Sparkles className="text-[#F5DEB3]" size={18} />} title="AI-Powered Matching"/>
-          <Feature icon={<MapPin className="text-[#F5DEB3]" size={18} />} title="Support Local Artisans"/>
-          <Feature icon={<Leaf className="text-[#F5DEB3]" size={18} />} title="Sustainable Options"/>
-        </dl>
+      {/* Content */}
+      <div className="absolute inset-0 flex items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="max-w-2xl">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-slate-900"
+            >
+              Find gifts they’ll actually love.
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+              className="mt-4 text-lg text-slate-600"
+            >
+              Ethical, local, and delightfully personal. Take a 60‑second quiz and get AI‑curated picks from independent makers.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+              className="mt-8 flex items-center gap-3"
+            >
+              <a
+                href="#quiz"
+                className="group inline-flex items-center rounded-full px-6 py-3 text-base font-medium text-white bg-slate-800 hover:bg-slate-900 active:scale-[0.98] transition shadow-lg shadow-slate-900/10"
+              >
+                Start the Quiz
+                <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 group-hover:scale-125 transition" />
+              </a>
+              <a
+                href="#features"
+                className="inline-flex items-center rounded-full px-6 py-3 text-base font-medium text-slate-800 bg-white/80 backdrop-blur hover:bg-white active:scale-[0.98] transition border border-slate-200 shadow-sm"
+              >
+                How it works
+              </a>
+            </motion.div>
+          </div>
+        </div>
       </div>
     </section>
-  );
-}
-
-function Feature({ icon, title }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-4 shadow-sm"
-    >
-      <div className="p-2 rounded-md bg-white/10">{icon}</div>
-      <dt className="text-sm font-medium">{title}</dt>
-    </motion.div>
   );
 }

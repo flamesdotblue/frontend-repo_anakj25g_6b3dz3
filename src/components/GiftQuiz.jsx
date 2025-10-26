@@ -1,237 +1,143 @@
-import React, { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const steps = [
-  { key: 'interests', label: 'Interests & Profile' },
-  { key: 'occasion', label: 'Occasion' },
-  { key: 'budget', label: 'Budget' },
-  { key: 'values', label: 'Values' },
-  { key: 'review', label: 'Review' },
+  { key: "recipient", label: "Who is this for?", type: "chips", options: ["Partner", "Friend", "Family", "Coworker", "Self-care"] },
+  { key: "occasion", label: "What’s the occasion?", type: "chips", options: ["Birthday", "Anniversary", "Graduation", "Holiday", "Just because"] },
+  { key: "interests", label: "Pick a couple interests", type: "chips-multi", options: ["Outdoors", "Art", "Tech", "Wellness", "Foodie", "Books"] },
+  { key: "values", label: "What matters most?", type: "chips-multi", options: ["Local", "Sustainable", "Handmade", "Vegan", "Inclusive"] },
+  { key: "budget", label: "Budget range", type: "budget" },
 ];
 
-export default function GiftQuiz({ compact = false }) {
-  const [step, setStep] = useState(0);
-  const [direction, setDirection] = useState(1);
-  const [form, setForm] = useState({
-    ageRange: '25-34',
-    interests: [],
-    values: [],
-    occasion: 'Birthday',
-    budget: 75,
-  });
+export default function GiftQuiz() {
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState({ recipient: "", occasion: "", interests: [], values: [], budget: 100 });
 
-  const next = () => {
-    setDirection(1);
-    setStep((s) => Math.min(s + 1, steps.length - 1));
-  };
-  const prev = () => {
-    setDirection(-1);
-    setStep((s) => Math.max(s - 1, 0));
-  };
+  const current = steps[index];
+  const progress = ((index + 1) / steps.length) * 100;
 
-  const progress = useMemo(() => Math.round(((step + 1) / steps.length) * 100), [step]);
-
-  const toggleInArray = (field, value) => {
-    setForm((f) => {
-      const has = f[field].includes(value);
-      return { ...f, [field]: has ? f[field].filter((v) => v !== value) : [...f[field], value] };
+  function toggleChip(field, value, multi = false) {
+    setAnswers((prev) => {
+      if (!multi) return { ...prev, [field]: value };
+      const has = prev[field].includes(value);
+      return { ...prev, [field]: has ? prev[field].filter((v) => v !== value) : [...prev[field], value] };
     });
-  };
+  }
+
+  function next() {
+    if (index < steps.length - 1) setIndex((i) => i + 1);
+  }
+  function back() {
+    if (index > 0) setIndex((i) => i - 1);
+  }
+
+  function isNextDisabled() {
+    if (current.type === "chips") return !answers[current.key];
+    if (current.type === "chips-multi") return answers[current.key].length === 0;
+    return false;
+  }
 
   return (
-    <section aria-labelledby="quiz-heading" className={`mx-auto w-full ${compact ? 'max-w-2xl' : 'max-w-4xl'} px-4 sm:px-6 lg:px-8`}>
-      <h2 id="quiz-heading" className="sr-only">Gift Quiz</h2>
-
-      <div className="rounded-xl border border-white/10 bg-white/5 shadow-xl overflow-hidden">
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-white/80">Step {step + 1} of {steps.length} • {steps[step].label}</p>
-            <span className="text-xs text-white/60">{progress}% complete</span>
+    <section id="quiz" className="py-16 bg-gradient-to-b from-white to-slate-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-[width] duration-300"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-          <div className="mt-2 h-2 w-full rounded bg-white/10 overflow-hidden" aria-hidden="true">
-            <div className="h-full bg-[#F5DEB3]" style={{ width: `${progress}%` }} />
-          </div>
+          <div className="mt-3 text-sm text-slate-600">Step {index + 1} of {steps.length}</div>
         </div>
 
-        <div className="px-4 sm:px-6 pb-6">
-          <AnimatePresence mode="wait" initial={false}>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <AnimatePresence mode="wait">
             <motion.div
-              key={step}
-              initial={{ opacity: 0, x: direction > 0 ? 40 : -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: direction > 0 ? -40 : 40 }}
-              transition={{ duration: 0.35 }}
+              key={current.key}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
             >
-              {step === 0 && (
-                <StepInterests form={form} setForm={setForm} toggle={toggleInArray} />
-              )}
-              {step === 1 && (
-                <StepOccasion form={form} setForm={setForm} />
-              )}
-              {step === 2 && (
-                <StepBudget form={form} setForm={setForm} />
-              )}
-              {step === 3 && (
-                <StepValues form={form} toggle={toggleInArray} />
-              )}
-              {step === 4 && (
-                <StepReview form={form} />
-              )}
+              <h3 className="text-2xl font-semibold text-slate-900">{current.label}</h3>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {current.type === "chips" && current.options?.map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => toggleChip(current.key, opt)}
+                    className={`px-4 py-2 rounded-full text-sm border transition shadow-sm hover:shadow ${
+                      answers[current.key] === opt
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-white text-slate-800 border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+
+                {current.type === "chips-multi" && current.options?.map((opt) => {
+                  const active = answers[current.key].includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => toggleChip(current.key, opt, true)}
+                      className={`px-4 py-2 rounded-full text-sm border transition shadow-sm hover:shadow ${
+                        active
+                          ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-transparent"
+                          : "bg-white text-slate-800 border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+
+                {current.type === "budget" && (
+                  <div className="w-full">
+                    <label htmlFor="budget" className="text-sm text-slate-600">${" "}{answers.budget} budget</label>
+                    <input
+                      id="budget"
+                      type="range"
+                      min={20}
+                      max={500}
+                      step={5}
+                      value={answers.budget}
+                      onChange={(e) => setAnswers((p) => ({ ...p, budget: Number(e.target.value) }))}
+                      className="mt-2 w-full accent-slate-900"
+                    />
+                  </div>
+                )}
+              </div>
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-6 flex items-center justify-between gap-3">
+          <div className="mt-6 flex items-center justify-between">
             <button
-              onClick={prev}
-              disabled={step === 0}
-              className="inline-flex items-center gap-2 rounded-md border border-white/20 px-4 py-2 text-sm text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={back}
+              disabled={index === 0}
+              className="px-4 py-2 rounded-full text-sm border border-slate-200 disabled:opacity-50 bg-white hover:border-slate-300 transition"
             >
-              <ChevronLeft size={16} /> Back
+              Back
             </button>
-            {step < steps.length - 1 ? (
+            {index < steps.length - 1 ? (
               <button
                 onClick={next}
-                className="inline-flex items-center gap-2 rounded-md bg-[#F5DEB3] text-[#36454F] px-5 py-2 text-sm font-semibold shadow hover:shadow-md active:scale-95 transition"
+                disabled={isNextDisabled()}
+                className="px-5 py-2 rounded-full text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 transition shadow"
               >
-                Next <ChevronRight size={16} />
+                Continue
               </button>
             ) : (
               <a
-                href="/#/recommendations"
-                className="inline-flex items-center gap-2 rounded-md bg-[#F5DEB3] text-[#36454F] px-5 py-2 text-sm font-semibold shadow hover:shadow-md active:scale-95 transition"
+                href="#" // would route to recommendations later
+                className="px-5 py-2 rounded-full text-sm font-medium text-slate-900 bg-gradient-to-r from-amber-200 to-amber-100 hover:from-amber-300 hover:to-amber-200 transition border border-amber-300 shadow"
               >
-                See Recommendations <CheckCircle2 size={16} />
+                See recommendations
               </a>
             )}
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function StepInterests({ form, setForm, toggle }) {
-  const interestOptions = ['Outdoors', 'Cooking', 'Tech', 'Art', 'Wellness', 'Music', 'Books'];
-  return (
-    <div className="space-y-6">
-      <div>
-        <label htmlFor="age" className="block text-sm font-medium mb-2">Age range</label>
-        <select
-          id="age"
-          value={form.ageRange}
-          onChange={(e) => setForm((f) => ({ ...f, ageRange: e.target.value }))}
-          className="w-full rounded-md bg-[#2b3740] border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#F5DEB3]"
-        >
-          <option>18-24</option>
-          <option>25-34</option>
-          <option>35-44</option>
-          <option>45-54</option>
-          <option>55+</option>
-        </select>
-      </div>
-
-      <fieldset>
-        <legend className="block text-sm font-medium mb-2">Interests</legend>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {interestOptions.map((opt) => (
-            <button
-              type="button"
-              key={opt}
-              onClick={() => toggle('interests', opt)}
-              aria-pressed={form.interests.includes(opt)}
-              className={`rounded-md border px-3 py-2 text-sm transition ${form.interests.includes(opt) ? 'border-[#F5DEB3] bg-white/10' : 'border-white/10 bg-[#2b3740] hover:bg-white/5'}`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-    </div>
-  );
-}
-
-function StepOccasion({ form, setForm }) {
-  const occasions = ['Birthday', 'Anniversary', 'Thank You', 'Holiday', 'Graduation'];
-  return (
-    <div className="space-y-4">
-      <fieldset>
-        <legend className="block text-sm font-medium mb-2">Occasion</legend>
-        <div className="flex flex-wrap gap-2">
-          {occasions.map((o) => (
-            <button
-              type="button"
-              key={o}
-              onClick={() => setForm((f) => ({ ...f, occasion: o }))}
-              aria-pressed={form.occasion === o}
-              className={`rounded-md border px-3 py-2 text-sm transition ${form.occasion === o ? 'border-[#F5DEB3] bg-white/10' : 'border-white/10 bg-[#2b3740] hover:bg-white/5'}`}
-            >
-              {o}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-    </div>
-  );
-}
-
-function StepBudget({ form, setForm }) {
-  return (
-    <div className="space-y-6">
-      <label htmlFor="budget" className="block text-sm font-medium">Budget: ${form.budget}</label>
-      <input
-        id="budget"
-        type="range"
-        min="20"
-        max="500"
-        step="5"
-        value={form.budget}
-        onChange={(e) => setForm((f) => ({ ...f, budget: Number(e.target.value) }))}
-        className="w-full accent-[#F5DEB3]"
-      />
-      <div className="flex justify-between text-xs text-white/70">
-        <span>$20</span>
-        <span>$500</span>
-      </div>
-    </div>
-  );
-}
-
-function StepValues({ form, toggle }) {
-  const valueOptions = ['Eco-friendly', 'Local artisan', 'Fair trade', 'Charitable'];
-  return (
-    <div className="space-y-4">
-      <fieldset>
-        <legend className="block text-sm font-medium mb-2">Values</legend>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {valueOptions.map((v) => (
-            <button
-              type="button"
-              key={v}
-              onClick={() => toggle('values', v)}
-              aria-pressed={form.values.includes(v)}
-              className={`rounded-md border px-3 py-2 text-sm transition ${form.values.includes(v) ? 'border-[#F5DEB3] bg-white/10' : 'border-white/10 bg-[#2b3740] hover:bg-white/5'}`}
-            >
-              {v}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-    </div>
-  );
-}
-
-function StepReview({ form }) {
-  return (
-    <div className="space-y-4 text-sm">
-      <p className="text-white/80">Review your selections before seeing recommendations.</p>
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <li className="rounded-md bg-[#2b3740] border border-white/10 p-3"><strong>Age:</strong> {form.ageRange}</li>
-        <li className="rounded-md bg-[#2b3740] border border-white/10 p-3"><strong>Occasion:</strong> {form.occasion}</li>
-        <li className="rounded-md bg-[#2b3740] border border-white/10 p-3"><strong>Budget:</strong> ${form.budget}</li>
-        <li className="rounded-md bg-[#2b3740] border border-white/10 p-3"><strong>Interests:</strong> {form.interests.join(', ') || '—'}</li>
-        <li className="rounded-md bg-[#2b3740] border border-white/10 p-3"><strong>Values:</strong> {form.values.join(', ') || '—'}</li>
-      </ul>
-    </div>
   );
 }
